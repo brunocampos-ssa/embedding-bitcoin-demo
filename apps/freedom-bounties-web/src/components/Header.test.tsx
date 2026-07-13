@@ -1,0 +1,2 @@
+import{render,screen,fireEvent}from'@testing-library/react';import{describe,it,expect}from'vitest';import{Header}from'./Header';import{I18nProvider}from'../i18n/context';
+describe('Header',()=>{it('labels mock mode and renders both languages',()=>{render(<I18nProvider><Header demo/></I18nProvider>);expect(screen.getByText(/no real funds/i)).toBeInTheDocument();fireEvent.change(screen.getByLabelText('Language'),{target:{value:'pt-BR'}});expect(screen.getByText(/nenhum valor real/i)).toBeInTheDocument()})});

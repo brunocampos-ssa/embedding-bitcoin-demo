@@ -1,0 +1,16 @@
+.env
+*.db
+*.db-shm
+*.db-wal
+data/
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+*.log
+.DS_Store
+.idea/
+.vscode/
+vendor/

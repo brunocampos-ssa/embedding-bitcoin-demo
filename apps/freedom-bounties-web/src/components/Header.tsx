@@ -1,0 +1,2 @@
+import{useI18n}from'../i18n/context';
+export function Header({demo=true}:{demo?:boolean}){const{locale,setLocale,t}=useI18n();return <><header><div><span className="mark">₿</span><strong>{t('brand')}</strong></div><label>{t('language')}<select aria-label={t('language')} value={locale} onChange={e=>setLocale(e.target.value as 'en-US'|'pt-BR')}><option value="en-US">English</option><option value="pt-BR">Português</option></select></label></header><div className={`mode ${demo?'mock':'real'}`}>{demo?t('demo'):t('real')}</div></>}
