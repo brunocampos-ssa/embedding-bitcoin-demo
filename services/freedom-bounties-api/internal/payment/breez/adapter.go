@@ -154,7 +154,7 @@ func (s *Service) PreparePayout(ctx context.Context, r payment.PrepareRequest) (
 		stored.lnurl = &res
 	default:
 		amount := big.NewInt(r.AmountBaseUnits)
-		res, e := s.sdk.PrepareSendPayment(sdk.PrepareSendPaymentRequest{PaymentRequest: r.Destination, Amount: &amount})
+		res, e := s.sdk.PrepareSendPayment(sdk.PrepareSendPaymentRequest{PaymentRequest: strings.TrimSpace(r.Destination), Amount: &amount})
 		if e != nil {
 			return nil, mapError(e)
 		}

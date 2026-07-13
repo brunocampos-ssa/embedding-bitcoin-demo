@@ -205,8 +205,12 @@ func (s *Service) Approve(ctx context.Context, submissionID string) error {
 	if _, err = tx.ExecContext(ctx, `UPDATE submissions SET state='APPROVED',approved_at=? WHERE id=?`, s.now().UTC().Format(time.RFC3339Nano), submissionID); err != nil {
 		return err
 	}
-	if _, err = tx.ExecContext(ctx, `UPDATE bounties SET state=? WHERE id=? AND state=?`, bounty.Approved, bid, bounty.Submitted); err != nil {
+	res, err := tx.ExecContext(ctx, `UPDATE bounties SET state=? WHERE id=? AND state=?`, bounty.Approved, bid, bounty.Submitted)
+	if err != nil {
 		return err
+	}
+	if n, _ := res.RowsAffected(); n != 1 {
+		return fmt.Errorf("invalid transition")
 	}
 	return tx.Commit()
 }

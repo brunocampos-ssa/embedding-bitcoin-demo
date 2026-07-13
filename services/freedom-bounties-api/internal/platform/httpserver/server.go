@@ -177,11 +177,12 @@ func (s *Server) prepare(w http.ResponseWriter, r *http.Request) {
 	if !decode(w, r, &in) {
 		return
 	}
-	if strings.TrimSpace(in.Destination) == "" {
+	destination := strings.TrimSpace(in.Destination)
+	if destination == "" {
 		fail(w, r, 422, "DESTINATION_REQUIRED", "Payment address or invoice is required.")
 		return
 	}
-	p, err := s.payouts.Prepare(r.Context(), r.PathValue("id"), in.Destination, in.Asset)
+	p, err := s.payouts.Prepare(r.Context(), r.PathValue("id"), destination, in.Asset)
 	if err != nil {
 		s.mapError(w, r, err)
 		return
@@ -227,7 +228,11 @@ func (s *Server) assign(w http.ResponseWriter, r *http.Request) {
 	var in struct {
 		Actor string `json:"actor"`
 	}
-	if !decode(w, r, &in) || strings.TrimSpace(in.Actor) == "" {
+	if !decode(w, r, &in) {
+		return
+	}
+	if strings.TrimSpace(in.Actor) == "" {
+		fail(w, r, 422, "VALIDATION_FAILED", "Actor is required.")
 		return
 	}
 	id := r.PathValue("id")
@@ -236,7 +241,13 @@ func (s *Server) assign(w http.ResponseWriter, r *http.Request) {
 		aid := "assignment-" + id
 		_, err = tx.ExecContext(r.Context(), `INSERT INTO assignments(id,bounty_id,actor,created_at)VALUES(?,?,?,?)`, aid, id, in.Actor, time.Now().UTC().Format(time.RFC3339Nano))
 		if err == nil {
-			_, err = tx.ExecContext(r.Context(), `UPDATE bounties SET state='ASSIGNED' WHERE id=? AND state='OPEN'`, id)
+			var res sql.Result
+			res, err = tx.ExecContext(r.Context(), `UPDATE bounties SET state='ASSIGNED' WHERE id=? AND state='OPEN'`, id)
+			if err == nil {
+				if n, _ := res.RowsAffected(); n != 1 {
+					err = fmt.Errorf("invalid transition")
+				}
+			}
 		}
 		if err == nil {
 			err = tx.Commit()
@@ -256,7 +267,7 @@ func (s *Server) submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if in.Actor == "" || in.EvidenceURL == "" {
-		fail(w, r, 422, "VALIDATION_FAILED", "Actor and evidenceURL are required.")
+		fail(w, r, 422, "VALIDATION_FAILED", "Actor and evidenceUrl are required.")
 		return
 	}
 	id := r.PathValue("id")
@@ -265,7 +276,13 @@ func (s *Server) submit(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		_, err = tx.ExecContext(r.Context(), `INSERT INTO submissions(id,bounty_id,actor,evidence_url,notes,state,created_at)VALUES(?,?,?,?,?,'SUBMITTED',?)`, sid, id, in.Actor, in.EvidenceURL, in.Notes, time.Now().UTC().Format(time.RFC3339Nano))
 		if err == nil {
-			_, err = tx.ExecContext(r.Context(), `UPDATE bounties SET state='SUBMITTED' WHERE id=? AND state='ASSIGNED'`, id)
+			var res sql.Result
+			res, err = tx.ExecContext(r.Context(), `UPDATE bounties SET state='SUBMITTED' WHERE id=? AND state='ASSIGNED'`, id)
+			if err == nil {
+				if n, _ := res.RowsAffected(); n != 1 {
+					err = fmt.Errorf("invalid transition")
+				}
+			}
 		}
 		if err == nil {
 			err = tx.Commit()
