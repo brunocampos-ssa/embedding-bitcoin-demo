@@ -1,0 +1,16 @@
+services:
+  api:
+    build: ./services/freedom-bounties-api
+    environment:
+      PAYMENT_PROVIDER: mock
+      HTTP_ADDR: :8080
+      DATABASE_PATH: /data/freedom-bounties.db
+      ALLOWED_ORIGIN: http://localhost:5173
+    volumes: [freedom-data:/data]
+    ports: ["8080:8080"]
+  web:
+    build: ./apps/freedom-bounties-web
+    ports: ["5173:80"]
+    depends_on: [api]
+volumes:
+  freedom-data:
