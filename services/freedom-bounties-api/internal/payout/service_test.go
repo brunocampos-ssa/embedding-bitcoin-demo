@@ -80,6 +80,34 @@ func TestIdempotentConfirmationAndPaidOnlyAfterSuccess(t *testing.T) {
 		t.Fatalf("duplicate payout: %v", err)
 	}
 }
+func TestPrepareRequiresTreasuryBalance(t *testing.T) {
+	db, err := database.Open(context.Background(), ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	if err = database.Seed(context.Background(), db); err != nil {
+		t.Fatal(err)
+	}
+	m := mock.New(mock.Config{StartEmpty: true, ProcessingDelay: time.Nanosecond})
+	s := NewService(db, m, Policy{MaxPayoutSats: 500, MaxFeeSats: 20, MaxDailyPayoutSats: 500})
+	ctx := context.Background()
+	if err = s.Approve(ctx, "submission-finance"); err != nil {
+		t.Fatal(err)
+	}
+	// Empty treasury: prepare must be blocked up front.
+	if _, err = s.Prepare(ctx, "submission-finance", "person@example.com", payment.AssetBTC); !errors.Is(err, payment.ErrInsufficientFunds) {
+		t.Fatalf("expected insufficient funds before deposit, got %v", err)
+	}
+	// Fund the treasury; the credit matures immediately (nanosecond delay).
+	if _, err = m.Deposit(ctx, payment.DepositRequest{Rail: payment.RailLightning, AmountSats: 1000}); err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(time.Millisecond)
+	if _, err = s.Prepare(ctx, "submission-finance", "person@example.com", payment.AssetBTC); err != nil {
+		t.Fatalf("expected prepare to succeed after deposit, got %v", err)
+	}
+}
 func TestExpiredPreparation(t *testing.T) {
 	s, _ := setup(t)
 	ctx := context.Background()

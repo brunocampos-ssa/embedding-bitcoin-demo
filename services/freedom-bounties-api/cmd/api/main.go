@@ -39,7 +39,7 @@ func main() {
 	var payments payment.Service
 	var closeProvider func() error = func() error { return nil }
 	if cfg.PaymentProvider == "mock" {
-		payments = mock.New(mock.Config{FailureMode: cfg.MockFailure})
+		payments = mock.New(mock.Config{FailureMode: cfg.MockFailure, StartEmpty: true})
 	} else {
 		payments, closeProvider, err = breez.New(breez.Config{APIKey: cfg.BreezAPIKey, Network: cfg.BreezNetwork, StorageDir: cfg.BreezStorageDir, Mnemonic: cfg.BreezMnemonic}, log)
 		if err != nil {
