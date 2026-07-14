@@ -34,6 +34,6 @@ In mock mode the treasury starts **empty** so the deposit-first flow is visible.
 
 ---
 
-<sub>📄 **Code:** [`internal/payment/mock/service.go`](../../services/freedom-bounties-api/internal/payment/mock/service.go)</sub>
+<sub>📄 **Code:** [`internal/payment/mock/service.go`](../../services/freedom-bounties-api/internal/payment/mock/service.go) · [`internal/payment/breez/adapter.go`](../../services/freedom-bounties-api/internal/payment/breez/adapter.go)</sub>
 
 **[🏠 README](../../README.md)**  ·  ◀ [Payment lifecycle](05-payment-lifecycle.md)  ·  [Running the demo](06-running-the-demo.md) ▶

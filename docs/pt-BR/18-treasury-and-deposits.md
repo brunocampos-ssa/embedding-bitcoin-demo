@@ -34,6 +34,6 @@ No modo mock a tesouraria começa **vazia** para que o fluxo que inicia pelo dep
 
 ---
 
-<sub>📄 **Código:** [`internal/payment/mock/service.go`](../../services/freedom-bounties-api/internal/payment/mock/service.go)</sub>
+<sub>📄 **Código:** [`internal/payment/mock/service.go`](../../services/freedom-bounties-api/internal/payment/mock/service.go) · [`internal/payment/breez/adapter.go`](../../services/freedom-bounties-api/internal/payment/breez/adapter.go)</sub>
 
 **[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Ciclo do pagamento](05-payment-lifecycle.md)  ·  [Executando a demonstração](06-running-the-demo.md) ▶
