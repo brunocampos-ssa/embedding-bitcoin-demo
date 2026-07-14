@@ -43,7 +43,23 @@ make dev
 
 Abra <http://localhost:5173>. Também é possível usar `make api` e `make web` em dois terminais. Use `make reset` para reiniciar os dados.
 
-O modo Breez real exige o build nativo e um tesouro pequeno, separado e financiado:
+O modo Breez real exige o build nativo e um tesouro pequeno, separado e financiado. Defina os valores no `.env` — `make dev` e `make api` carregam o arquivo e compilam automaticamente com `-tags breez` quando `PAYMENT_PROVIDER=breez`:
+
+```bash
+# .env
+PAYMENT_PROVIDER=breez
+BREEZ_API_KEY=sua-chave
+# Coloque a mnemonic entre aspas — ela contém espaços e o .env é lido pelo shell:
+BREEZ_MNEMONIC="palavra1 palavra2 … palavra12"
+```
+
+```bash
+make dev   # carrega o .env, compila o binding Breez e sobe API + web
+```
+
+Se ao carregar o `.env` aparecer `command not found`, um valor com várias palavras (geralmente a mnemonic) está sem aspas — coloque-o entre aspas.
+
+Como alternativa, rode o binário diretamente sem `.env`:
 
 ```bash
 cd services/freedom-bounties-api
@@ -51,7 +67,7 @@ PAYMENT_PROVIDER=breez BREEZ_API_KEY='…' BREEZ_MNEMONIC='…' \
   go run -tags breez ./cmd/api
 ```
 
-Nunca envie a mnemonic ao navegador nem a versione. Leia [Integração Breez](docs/pt-BR/07-breez-integration.md) e [Segurança](docs/pt-BR/08-security-model.md) antes.
+Nunca envie a mnemonic ao navegador nem a versione (o `.env` está no gitignore). Por padrão (`BREEZ_NETWORK` ausente ou `mainnet`), os testes Lightning movem **satoshis reais da mainnet**; use `BREEZ_NETWORK=regtest` para testes Spark/on-chain sem fundos reais. Leia [Integração Breez](docs/pt-BR/07-breez-integration.md) e [Segurança](docs/pt-BR/08-security-model.md) antes.
 
 ## Material da oficina
 
