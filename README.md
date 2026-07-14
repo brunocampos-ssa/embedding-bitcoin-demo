@@ -61,6 +61,8 @@ BREEZ_MNEMONIC="word1 word2 … word12"
 make dev   # loads .env, builds the Breez binding, runs API + web
 ```
 
+If sourcing `.env` prints `command not found`, a multi-word value (usually the mnemonic) is unquoted — wrap it in quotes.
+
 Equivalently, run the binary directly without `.env`:
 
 ```bash
@@ -69,7 +71,7 @@ PAYMENT_PROVIDER=breez BREEZ_API_KEY='…' BREEZ_MNEMONIC='…' \
   go run -tags breez ./cmd/api
 ```
 
-Use a separately funded, low-value treasury. Never paste a mnemonic into the browser or commit it (`.env` is gitignored). With `BREEZ_NETWORK=mainnet`, Lightning testing moves **real mainnet satoshis**; Spark/on-chain development can use Breez/Lightspark regtest. See [Breez integration](docs/en-US/07-breez-integration.md) before enabling this mode.
+Use a separately funded, low-value treasury. Never paste a mnemonic into the browser or commit it (`.env` is gitignored). By default (`BREEZ_NETWORK` unset or `mainnet`) Lightning testing moves **real mainnet satoshis**; set `BREEZ_NETWORK=regtest` for Spark/on-chain testing without real funds. See [Breez integration](docs/en-US/07-breez-integration.md) before enabling this mode.
 
 ## Read the code by concept
 
