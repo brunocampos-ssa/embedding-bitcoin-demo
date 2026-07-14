@@ -17,7 +17,6 @@ export function TreasuryPanel({ treasury, onChanged }: { treasury?: Treasury; on
   const [copied, setCopied] = useState(false);
 
   const balance = treasury?.balanceSats ?? 0;
-  const needsAmount = rail === 'lightning';
   const amountSats = Number(amount) || 0;
 
   async function createDeposit() {
@@ -67,13 +66,11 @@ export function TreasuryPanel({ treasury, onChanged }: { treasury?: Treasury; on
               <option value="spark">{t('railSpark')}</option>
             </select>
           </label>
-          {needsAmount && (
-            <label className="field">
-              {t('depositAmount')}
-              <input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            </label>
-          )}
-          <button onClick={createDeposit} disabled={busy || (needsAmount && amountSats <= 0)}>
+          <label className="field">
+            {t('depositAmount')}
+            <input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          </label>
+          <button onClick={createDeposit} disabled={busy || amountSats <= 0}>
             {t('createDeposit')}
           </button>
         </div>
