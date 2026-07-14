@@ -16,4 +16,4 @@ O demo não resolve comprometimento do host, roubo de mnemonic, organização ma
 
 <sub>📄 **Código:** [`internal/platform/httpserver/server.go`](../../services/freedom-bounties-api/internal/platform/httpserver/server.go)</sub>
 
-**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Integração com Breez SDK - Spark](07-breez-integration.md)  ·  [Roteiro da oficina de duas horas](09-workshop-walkthrough.md) ▶
+**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Integração com Breez SDK - Spark](07-breez-integration.md)  ·  [Solução de problemas](10-troubleshooting.md) ▶

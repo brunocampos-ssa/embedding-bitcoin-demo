@@ -20,4 +20,4 @@
 
 ---
 
-**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Roteiro da oficina de duas horas](09-workshop-walkthrough.md)  ·  [Notas de implementação](00-implementation-notes.md) ▶
+**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Modelo de segurança](08-security-model.md)  ·  [Notas de implementação](00-implementation-notes.md) ▶

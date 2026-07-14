@@ -16,4 +16,4 @@ Threats not solved by this demo include compromised server/host, stolen mnemonic
 
 <sub>📄 **Code:** [`internal/platform/httpserver/server.go`](../../services/freedom-bounties-api/internal/platform/httpserver/server.go)</sub>
 
-**[🏠 README](../../README.md)**  ·  ◀ [Breez SDK - Spark integration](07-breez-integration.md)  ·  [Two-hour workshop walkthrough](09-workshop-walkthrough.md) ▶
+**[🏠 README](../../README.md)**  ·  ◀ [Breez SDK - Spark integration](07-breez-integration.md)  ·  [Troubleshooting](10-troubleshooting.md) ▶

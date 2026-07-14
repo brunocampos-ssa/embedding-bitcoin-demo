@@ -20,4 +20,4 @@
 
 ---
 
-**[🏠 README](../../README.md)**  ·  ◀ [Two-hour workshop walkthrough](09-workshop-walkthrough.md)  ·  [Implementation notes](00-implementation-notes.md) ▶
+**[🏠 README](../../README.md)**  ·  ◀ [Security model](08-security-model.md)  ·  [Implementation notes](00-implementation-notes.md) ▶
