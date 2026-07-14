@@ -27,3 +27,11 @@ stateDiagram-v2
 ```
 
 Invariants: only approved submissions may be prepared; amount and destination freeze at preparation; a unique partial index permits only one successful payout per submission; confirmation requires an idempotency key; the key is persisted before the provider call; a different key cannot replace an existing payout. The bounty reaches `PAID` only while reconciling a provider `SUCCEEDED` result.
+
+<!-- nav-footer -->
+
+---
+
+<sub>📄 **Code:** [`internal/payout/models.go`](../../services/freedom-bounties-api/internal/payout/models.go)</sub>
+
+**[🏠 README](../../README.md)**  ·  ◀ [Architecture](02-architecture.md)  ·  [Payment lifecycle](05-payment-lifecycle.md) ▶

@@ -29,3 +29,11 @@ In mock mode the treasury starts **empty** so the deposit-first flow is visible.
 ## Real Breez mode
 
 `TreasuryInfo` maps to the SDK's `GetInfo` (balance) plus `GetLightningAddress`, and `Deposit` maps to `ReceivePayment` with the method matching the chosen rail. Real on-chain and Spark deposits arrive out of band; the balance reflects them on the next `GetInfo`. Fund a separately controlled, low-value treasury — never paste a mnemonic into the browser.
+
+<!-- nav-footer -->
+
+---
+
+<sub>📄 **Code:** [`internal/payment/mock/service.go`](../../services/freedom-bounties-api/internal/payment/mock/service.go) · [`internal/payment/breez/adapter.go`](../../services/freedom-bounties-api/internal/payment/breez/adapter.go)</sub>
+
+**[🏠 README](../../README.md)**  ·  ◀ [Payment lifecycle](05-payment-lifecycle.md)  ·  [Running the demo](06-running-the-demo.md) ▶

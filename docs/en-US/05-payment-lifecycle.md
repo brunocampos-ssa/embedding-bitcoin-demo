@@ -24,3 +24,11 @@ sequenceDiagram
 The lifecycle opens earlier than this diagram: the treasury must be funded first. See [treasury and deposits](18-treasury-and-deposits.md) for the deposit step, the balance precheck, and the self-payment guard that gate `prepare`.
 
 Errors are stable application codes, not SDK or SQL details. Pending and ambiguous sends are reconciled by provider ID. No retry creates a fresh payment intent automatically.
+
+<!-- nav-footer -->
+
+---
+
+<sub>📄 **Code:** [`internal/payout/service.go`](../../services/freedom-bounties-api/internal/payout/service.go)</sub>
+
+**[🏠 README](../../README.md)**  ·  ◀ [Domain model](03-domain-model.md)  ·  [Treasury and deposits](18-treasury-and-deposits.md) ▶

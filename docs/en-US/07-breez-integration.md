@@ -16,3 +16,11 @@ go test -tags breez ./internal/payment/breez ./cmd/api
 ```
 
 Manual validation needs a Breez API key, native platform support, and funding — the treasury mnemonic is generated for you when `BREEZ_MNEMONIC` is unset (or supply your own low-value one). Use regtest for Spark/on-chain; use very small mainnet amounts for Lightning. Verify parse, fee review, send, restart, and reconciliation. This repository did not execute a funded end-to-end payment. Cross-chain stablecoins are disabled for the release mismatch described in [implementation notes](00-implementation-notes.md).
+
+<!-- nav-footer -->
+
+---
+
+<sub>📄 **Code:** [`internal/payment/breez/adapter.go`](../../services/freedom-bounties-api/internal/payment/breez/adapter.go)</sub>
+
+**[🏠 README](../../README.md)**  ·  ◀ [Running the demo](06-running-the-demo.md)  ·  [Security model](08-security-model.md) ▶

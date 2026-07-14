@@ -17,3 +17,9 @@ A documentação atual descreve entrega cross-chain de USDC/USDT em redes EVM, S
 BTC por Lightning, on-chain e Spark compila contra o SDK nativo, mas não foi testado ponta a ponta com credenciais e fundos. Chamadas Go são síncronas e não recebem `context.Context`; o adaptador verifica cancelamento antes da chamada, mas não interrompe trabalho nativo já iniciado.
 
 Preparações do SDK ficam em memória. Após reinício, uma preparação ainda não enviada deve expirar e ser refeita; pagamentos com ID do provedor são reconciliados por `GetPayment`. Nunca criamos automaticamente uma nova intenção diante de resultado ambíguo. Mnemonic em variável de ambiente serve apenas à demonstração; produção deve usar assinador externo. A chave idempotente do SDK precisa ser UUID; a interface usa `crypto.randomUUID()`.
+
+<!-- nav-footer -->
+
+---
+
+**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Solução de problemas](10-troubleshooting.md)  ·  [Próximos passos](11-next-steps.md) ▶

@@ -22,3 +22,9 @@ Real BTC Lightning, on-chain, and Spark code compiles against the native SDK but
 Provider preparation values are held in memory and application preparation metadata is persisted. After a process restart, a prepared-but-unsent payout must expire and be prepared again; a payout with a provider payment ID is reconciled with `GetPayment`. A potentially successful payment is never replaced with a new intent automatically.
 
 Mnemonic-in-environment is demo-only. Production should use the documented external signer interfaces and a secrets manager. The SDK idempotency key must be a UUID for supported Spark-based transfers; the web client uses `crypto.randomUUID()`.
+
+<!-- nav-footer -->
+
+---
+
+**[🏠 README](../../README.md)**  ·  ◀ [Troubleshooting](10-troubleshooting.md)  ·  [Next steps](11-next-steps.md) ▶
