@@ -82,6 +82,17 @@ func TestTreasuryDepositAndSelfPaymentGuard(t *testing.T) {
 		t.Fatalf("self-payment: %d %s", w.Code, w.Body.String())
 	}
 }
+func TestPaymentsEmptyIsArrayNotNull(t *testing.T) {
+	h := handler(t)
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/payments", nil))
+	if w.Code != 200 {
+		t.Fatalf("status=%d", w.Code)
+	}
+	if body := strings.TrimSpace(w.Body.String()); body != "[]" {
+		t.Fatalf("expected [] for no payouts (null crashes the history view), got %q", body)
+	}
+}
 func TestHealthAndOrigin(t *testing.T) {
 	h := handler(t)
 	w := httptest.NewRecorder()

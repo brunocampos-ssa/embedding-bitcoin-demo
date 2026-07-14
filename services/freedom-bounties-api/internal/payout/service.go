@@ -146,6 +146,8 @@ func (s *Service) Confirm(ctx context.Context, id, key string) (*Payout, error) 
 	if err != nil {
 		return nil, err
 	}
+	// Get marks the bounty PAID for any succeeded payout (see below), covering
+	// both this synchronous path and the asynchronous reconciliation.
 	return s.Get(ctx, id)
 }
 func (s *Service) Get(ctx context.Context, id string) (*Payout, error) {
@@ -175,10 +177,13 @@ func (s *Service) Get(ctx context.Context, id string) (*Payout, error) {
 			_, _ = s.db.ExecContext(ctx, `UPDATE payouts SET state=?,failure_code=?,updated_at=? WHERE id=?`, next, r.FailureCode, s.now().UTC().Format(time.RFC3339Nano), id)
 			p.State = next
 			p.FailureCode = r.FailureCode
-			if next == Succeeded {
-				_, _ = s.db.ExecContext(ctx, `UPDATE bounties SET state='PAID' WHERE id=(SELECT bounty_id FROM submissions WHERE id=?) AND state='APPROVED'`, p.SubmissionID)
-			}
 		}
+	}
+	// Mark the bounty PAID once its payout has succeeded, wherever the success was
+	// recorded (Confirm's synchronous path or the reconciliation above). Idempotent
+	// via the APPROVED guard, so a later read self-heals a missed update.
+	if p.State == Succeeded {
+		_, _ = s.db.ExecContext(ctx, `UPDATE bounties SET state='PAID' WHERE id=(SELECT bounty_id FROM submissions WHERE id=?) AND state='APPROVED'`, p.SubmissionID)
 	}
 	return p, nil
 }
@@ -187,20 +192,37 @@ func (s *Service) List(ctx context.Context) ([]Payout, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var out []Payout
+	// Collect ids first, then close the result set before calling Get per row:
+	// Get issues its own queries, and the pool is capped at one connection.
+	var ids []string
 	for rows.Next() {
 		var id string
 		if err := rows.Scan(&id); err != nil {
+			rows.Close()
 			return nil, err
 		}
+		ids = append(ids, id)
+	}
+	err = rows.Err()
+	rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	// Always return a non-nil slice so the API emits [] rather than null.
+	out := []Payout{}
+	for _, id := range ids {
 		p, err := s.Get(ctx, id)
+		if errors.Is(err, ErrNotFound) {
+			// Row vanished between the id scan and Get; skip it.
+			continue
+		}
 		if err != nil {
+			// Surface real errors rather than silently dropping a payout.
 			return nil, err
 		}
 		out = append(out, *p)
 	}
-	return out, rows.Err()
+	return out, nil
 }
 func (s *Service) Approve(ctx context.Context, submissionID string) error {
 	tx, err := s.db.BeginTx(ctx, nil)
