@@ -43,6 +43,19 @@ func TestResolveMnemonicGeneratesPersistsAndReuses(t *testing.T) {
 	}
 }
 
+func TestResolveMnemonicRejectsInvalidProvided(t *testing.T) {
+	if _, _, _, err := resolveMnemonic(t.TempDir(), "these are not twelve valid bip39 words at all"); err == nil {
+		t.Fatal("expected error for an invalid provided mnemonic")
+	}
+}
+
+func TestResolveMnemonicRejectsEmptyStorageDir(t *testing.T) {
+	// No mnemonic provided and nowhere to persist a generated one.
+	if _, _, _, err := resolveMnemonic("   ", ""); err == nil {
+		t.Fatal("expected error when storage dir is empty and generation is needed")
+	}
+}
+
 func TestResolveMnemonicRejectsCorruptFile(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, treasuryMnemonicFile), []byte("not a valid mnemonic"), 0o600); err != nil {
