@@ -17,15 +17,26 @@ export default function App() {
   const [error, setError] = useState('');
 
   async function load() {
-    try {
-      const [h, b, p, tr] = await Promise.all([api.health(), api.bounties(), api.payments(), api.treasury()]);
-      setHealth(h);
-      setBounties(b);
-      setHistory(p);
-      setTreasury(tr);
-      if (selected) setSelected(await api.bounty(selected.id));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t('error'));
+    // Settle each request independently so one failing endpoint cannot blank the
+    // whole page. Only update state for the calls that succeed.
+    const [h, b, p, tr] = await Promise.allSettled([
+      api.health(),
+      api.bounties(),
+      api.payments(),
+      api.treasury(),
+    ]);
+    if (h.status === 'fulfilled') setHealth(h.value);
+    if (b.status === 'fulfilled') setBounties(b.value);
+    if (p.status === 'fulfilled') setHistory(Array.isArray(p.value) ? p.value : []);
+    if (tr.status === 'fulfilled') setTreasury(tr.value);
+    const failure = [h, b, p, tr].find((r) => r.status === 'rejected') as PromiseRejectedResult | undefined;
+    setError(failure ? (failure.reason instanceof Error ? failure.reason.message : t('error')) : '');
+    if (selected) {
+      try {
+        setSelected(await api.bounty(selected.id));
+      } catch {
+        /* keep the current selection if it can't be refreshed */
+      }
     }
   }
   useEffect(() => {
@@ -65,10 +76,10 @@ export default function App() {
         )}
         {view === 'history' ? (
           <section className="cards">
-            {history.length === 0 ? (
+            {(history ?? []).length === 0 ? (
               <p>{t('empty')}</p>
             ) : (
-              history.map((p) => (
+              (history ?? []).map((p) => (
                 <article key={p.id}>
                   <span className="pill">{p.state}</span>
                   <h3>{p.amountBaseUnits} sats</h3>

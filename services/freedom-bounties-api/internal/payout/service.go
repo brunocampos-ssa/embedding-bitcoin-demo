@@ -146,6 +146,11 @@ func (s *Service) Confirm(ctx context.Context, id, key string) (*Payout, error) 
 	if err != nil {
 		return nil, err
 	}
+	// A provider may complete synchronously (e.g. fast Lightning), so mark the
+	// bounty PAID here too — not only in Get's PROCESSING→SUCCEEDED reconciliation.
+	if state == Succeeded {
+		_, _ = s.db.ExecContext(ctx, `UPDATE bounties SET state='PAID' WHERE id=(SELECT bounty_id FROM submissions WHERE id=?) AND state='APPROVED'`, p.SubmissionID)
+	}
 	return s.Get(ctx, id)
 }
 func (s *Service) Get(ctx context.Context, id string) (*Payout, error) {
@@ -187,20 +192,33 @@ func (s *Service) List(ctx context.Context) ([]Payout, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var out []Payout
+	// Collect ids first, then close the result set before calling Get per row:
+	// Get issues its own queries, and the pool is capped at one connection.
+	var ids []string
 	for rows.Next() {
 		var id string
 		if err := rows.Scan(&id); err != nil {
+			rows.Close()
 			return nil, err
 		}
+		ids = append(ids, id)
+	}
+	err = rows.Err()
+	rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	// Always return a non-nil slice so the API emits [] rather than null.
+	out := []Payout{}
+	for _, id := range ids {
 		p, err := s.Get(ctx, id)
 		if err != nil {
-			return nil, err
+			// Skip a row that can't be loaded rather than failing the whole list.
+			continue
 		}
 		out = append(out, *p)
 	}
-	return out, rows.Err()
+	return out, nil
 }
 func (s *Service) Approve(ctx context.Context, submissionID string) error {
 	tx, err := s.db.BeginTx(ctx, nil)

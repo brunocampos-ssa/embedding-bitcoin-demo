@@ -80,6 +80,62 @@ func TestIdempotentConfirmationAndPaidOnlyAfterSuccess(t *testing.T) {
 		t.Fatalf("duplicate payout: %v", err)
 	}
 }
+func TestListReturnsEmptySliceNotNil(t *testing.T) {
+	s, _ := setup(t)
+	out, err := s.List(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out == nil {
+		t.Fatal("List returned nil — the API would then emit null and crash the history view")
+	}
+	if len(out) != 0 {
+		t.Fatalf("expected empty, got %d", len(out))
+	}
+}
+
+// syncProvider forces SendPayout to report immediate success, as fast Lightning
+// can, to exercise the synchronous-success path in Confirm.
+type syncProvider struct{ *mock.Service }
+
+func (p syncProvider) SendPayout(ctx context.Context, prepID, key string) (*payment.Result, error) {
+	r, err := p.Service.SendPayout(ctx, prepID, key)
+	if err != nil {
+		return nil, err
+	}
+	r.Status = payment.StatusSucceeded
+	return r, nil
+}
+
+func TestConfirmMarksBountyPaidOnSynchronousSuccess(t *testing.T) {
+	db, err := database.Open(context.Background(), ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	if err = database.Seed(context.Background(), db); err != nil {
+		t.Fatal(err)
+	}
+	s := NewService(db, syncProvider{mock.New(mock.Config{})}, Policy{MaxPayoutSats: 500, MaxFeeSats: 20, MaxDailyPayoutSats: 500})
+	ctx := context.Background()
+	if err = s.Approve(ctx, "submission-finance"); err != nil {
+		t.Fatal(err)
+	}
+	p, err := s.Prepare(ctx, "submission-finance", "person@example.com", payment.AssetBTC)
+	if err != nil {
+		t.Fatal(err)
+	}
+	done, err := s.Confirm(ctx, p.ID, "k")
+	if err != nil || done.State != Succeeded {
+		t.Fatalf("confirm: state=%v err=%v", done.State, err)
+	}
+	var state string
+	_ = s.db.QueryRow(`SELECT state FROM bounties WHERE id='bounty-finance'`).Scan(&state)
+	if state != "PAID" {
+		t.Fatalf("bounty must be PAID after a synchronous success, got %s", state)
+	}
+}
+
 func TestPrepareRequiresTreasuryBalance(t *testing.T) {
 	db, err := database.Open(context.Background(), ":memory:")
 	if err != nil {

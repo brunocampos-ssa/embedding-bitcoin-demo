@@ -43,7 +43,14 @@ export function PayoutFlow({
       onChanged();
     });
   const prepare = () => run(async () => setPayout(await api.prepare(submission.id, destination)));
-  const confirm = () => run(async () => setPayout(await api.confirm(payout!.id, crypto.randomUUID())));
+  const confirm = () =>
+    run(async () => {
+      const p = await api.confirm(payout!.id, crypto.randomUUID());
+      setPayout(p);
+      // A provider may settle synchronously; refresh history and the treasury
+      // balance now rather than only from the PROCESSING poll.
+      if (p.state === 'SUCCEEDED' || p.state === 'PAYMENT_FAILED') onChanged();
+    });
   const refresh = () =>
     run(async () => {
       const p = await api.payout(payout!.id);
