@@ -67,6 +67,15 @@ func (s *Service) Prepare(ctx context.Context, submissionID, destination string,
 	if asset == payment.AssetBTC && prep.FeeBaseUnits > s.policy.MaxFeeSats {
 		return nil, ErrPolicy
 	}
+	if asset == payment.AssetBTC {
+		info, ierr := s.payments.TreasuryInfo(ctx)
+		if ierr != nil {
+			return nil, ierr
+		}
+		if info.BalanceSats < amount+prep.FeeBaseUnits {
+			return nil, payment.ErrInsufficientFunds
+		}
+	}
 	now := s.now().UTC()
 	expires := prep.ExpiresAt
 	if max := now.Add(s.policy.PreparationTTL); expires.After(max) {

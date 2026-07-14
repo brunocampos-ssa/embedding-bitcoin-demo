@@ -21,4 +21,6 @@ sequenceDiagram
   A->>A: mark bounty PAID only on success
 ```
 
+The lifecycle opens earlier than this diagram: the treasury must be funded first. See [treasury and deposits](18-treasury-and-deposits.md) for the deposit step, the balance precheck, and the self-payment guard that gate `prepare`.
+
 Errors are stable application codes, not SDK or SQL details. Pending and ambiguous sends are reconciled by provider ID. No retry creates a fresh payment intent automatically.

@@ -43,6 +43,8 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/payouts/{id}", s.getPayout)
 	s.mux.HandleFunc("GET /api/payments", s.listPayments)
 	s.mux.HandleFunc("GET /api/capabilities", s.capabilities)
+	s.mux.HandleFunc("GET /api/treasury", s.treasury)
+	s.mux.HandleFunc("POST /api/treasury/deposit", s.deposit)
 }
 
 type apiError struct {
@@ -216,6 +218,44 @@ func (s *Server) listPayments(w http.ResponseWriter, r *http.Request) {
 	}
 	write(w, 200, p)
 }
+func (s *Server) treasury(w http.ResponseWriter, r *http.Request) {
+	info, err := s.payments.TreasuryInfo(r.Context())
+	if err != nil {
+		s.mapError(w, r, err)
+		return
+	}
+	write(w, 200, info)
+}
+func (s *Server) deposit(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Rail       payment.Rail `json:"rail"`
+		AmountSats int64        `json:"amountSats"`
+	}
+	if !decode(w, r, &in) {
+		return
+	}
+	switch in.Rail {
+	case payment.RailLightning, payment.RailBitcoin, payment.RailSpark:
+	default:
+		fail(w, r, 422, "DEPOSIT_INVALID", "Choose a supported deposit rail: lightning, bitcoin, or spark.")
+		return
+	}
+	if in.AmountSats < 0 {
+		fail(w, r, 422, "DEPOSIT_INVALID", "Deposit amount cannot be negative.")
+		return
+	}
+	if in.Rail == payment.RailLightning && in.AmountSats <= 0 {
+		fail(w, r, 422, "DEPOSIT_AMOUNT_REQUIRED", "A positive amount is required for a Lightning deposit.")
+		return
+	}
+	q, err := s.payments.Deposit(r.Context(), payment.DepositRequest{Rail: in.Rail, AmountSats: in.AmountSats})
+	if err != nil {
+		s.mapError(w, r, err)
+		return
+	}
+	s.audit(r.Context(), r, "deposit", "treasury", string(in.Rail), "quoted")
+	write(w, 201, q)
+}
 func (s *Server) capabilities(w http.ResponseWriter, r *http.Request) {
 	c, err := s.payments.Capabilities(r.Context())
 	if err != nil {
@@ -310,6 +350,8 @@ func (s *Server) mapError(w http.ResponseWriter, r *http.Request, err error) {
 		fail(w, r, 422, "PAYOUT_POLICY_REJECTED", "The payout exceeds a configured safety limit.")
 	case errors.Is(err, payment.ErrUnsupportedDestination):
 		fail(w, r, 422, "UNSUPPORTED_DESTINATION", "Use a supported payment address or invoice.")
+	case errors.Is(err, payment.ErrSelfPayment):
+		fail(w, r, 422, "SELF_PAYMENT_REJECTED", "That destination is the treasury's own wallet.")
 	case errors.Is(err, payment.ErrExpired):
 		fail(w, r, 410, "PAYMENT_EXPIRED", "The payment request or preparation expired.")
 	case errors.Is(err, payment.ErrInsufficientFunds):

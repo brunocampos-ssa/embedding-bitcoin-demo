@@ -1,9 +1,170 @@
-import{useEffect,useState}from'react';import{api}from'../../api/client';import type{Payout,Submission}from'../../models';import{useI18n}from'../../i18n/context';
-export function PayoutFlow({submission,onChanged}:{submission:Submission;onChanged:()=>void}){const{t}=useI18n();const[approved,setApproved]=useState(submission.state==='APPROVED');const[destination,setDestination]=useState('');const[payout,setPayout]=useState<Payout>();const[error,setError]=useState('');const[busy,setBusy]=useState(false);
-async function run(fn:()=>Promise<unknown>){setBusy(true);setError('');try{await fn()}catch(e){setError(e instanceof Error?e.message:t('error'))}finally{setBusy(false)}}
-const approve=()=>run(async()=>{await api.approve(submission.id);setApproved(true);onChanged()});const prepare=()=>run(async()=>setPayout(await api.prepare(submission.id,destination)));const confirm=()=>run(async()=>setPayout(await api.confirm(payout!.id,crypto.randomUUID())));const refresh=()=>run(async()=>{const p=await api.payout(payout!.id);setPayout(p);if(p.state==='SUCCEEDED')onChanged()});
-useEffect(()=>{if(payout?.state==='PROCESSING'){const id=setTimeout(()=>void refresh(),900);return()=>clearTimeout(id)}},[payout?.state]);
-if(!approved)return <section className="action"><h3>{t('submission')}</h3><p>{submission.notes}</p><a href={submission.evidenceUrl} target="_blank" rel="noreferrer">{t('evidence')} ↗</a><button onClick={approve} disabled={busy}>{t('approve')}</button>{error&&<p role="alert" className="error">{error}</p>}</section>;
-if(!payout)return <section className="action"><span className="approved">✓ {t('approved')}</span><label className="field">{t('destination')}<input value={destination} onChange={e=>setDestination(e.target.value)} placeholder="lnbc… · name@example.com · bc1… · spark1…" required/><small>{t('destinationHelp')}</small></label><button onClick={prepare} disabled={busy||destination.trim().length<4}>{t('validate')}</button>{error&&<p role="alert" className="error">{error}</p>}</section>;
-if(payout.state==='PREPARED')return <section className="review"><h3>{t('review')}</h3><dl><div><dt>{t('type')}</dt><dd>{payout.destinationType}</dd></div><div><dt>{t('rail')}</dt><dd>{payout.rail}</dd></div><div><dt>{t('amount')}</dt><dd>{payout.amountBaseUnits} sats</dd></div><div><dt>{t('fee')}</dt><dd>{payout.feeBaseUnits} sats</dd></div><div><dt>{t('recipient')}</dt><dd>{payout.destinationMasked}</dd></div><div><dt>{t('expires')}</dt><dd>{new Date(payout.expiresAt).toLocaleTimeString()}</dd></div></dl><button onClick={confirm} disabled={busy}>{t('confirm')}</button>{error&&<p role="alert" className="error">{error}</p>}</section>;
-const succeeded=payout.state==='SUCCEEDED';const failed=payout.state==='PAYMENT_FAILED';return <section className={`result ${succeeded?'success':failed?'failure':''}`}><div className="resultIcon">{succeeded?'✓':failed?'!':'…'}</div><h3>{succeeded?t('success'):failed?t('failed'):t('processing')}</h3>{payout.providerPaymentId&&<code>{payout.providerPaymentId}</code>}{!succeeded&&!failed&&<button onClick={refresh} disabled={busy}>{t('refresh')}</button>}{error&&<p role="alert" className="error">{error}</p>}</section>}
+import { useEffect, useState } from 'react';
+import { api } from '../../api/client';
+import type { Payout, Submission } from '../../models';
+import { useI18n } from '../../i18n/context';
+
+export function PayoutFlow({
+  submission,
+  balanceSats,
+  rewardSats,
+  onChanged,
+}: {
+  submission: Submission;
+  balanceSats?: number;
+  rewardSats?: number;
+  onChanged: () => void;
+}) {
+  const { t } = useI18n();
+  const [approved, setApproved] = useState(submission.state === 'APPROVED');
+  const [destination, setDestination] = useState('');
+  const [payout, setPayout] = useState<Payout>();
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  // Only gate on balance when the caller supplied both figures (the unit tests
+  // render this flow standalone without treasury context).
+  const underfunded = balanceSats !== undefined && rewardSats !== undefined && balanceSats < rewardSats;
+
+  async function run(fn: () => Promise<unknown>) {
+    setBusy(true);
+    setError('');
+    try {
+      await fn();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('error'));
+    } finally {
+      setBusy(false);
+    }
+  }
+  const approve = () =>
+    run(async () => {
+      await api.approve(submission.id);
+      setApproved(true);
+      onChanged();
+    });
+  const prepare = () => run(async () => setPayout(await api.prepare(submission.id, destination)));
+  const confirm = () => run(async () => setPayout(await api.confirm(payout!.id, crypto.randomUUID())));
+  const refresh = () =>
+    run(async () => {
+      const p = await api.payout(payout!.id);
+      setPayout(p);
+      if (p.state === 'SUCCEEDED') onChanged();
+    });
+
+  useEffect(() => {
+    if (payout?.state === 'PROCESSING') {
+      const id = setTimeout(() => void refresh(), 900);
+      return () => clearTimeout(id);
+    }
+  }, [payout?.state]);
+
+  if (!approved)
+    return (
+      <section className="action">
+        <h3>{t('submission')}</h3>
+        <p>{submission.notes}</p>
+        <a href={submission.evidenceUrl} target="_blank" rel="noreferrer">
+          {t('evidence')} ↗
+        </a>
+        <button onClick={approve} disabled={busy}>
+          {t('approve')}
+        </button>
+        {error && (
+          <p role="alert" className="error">
+            {error}
+          </p>
+        )}
+      </section>
+    );
+
+  if (!payout)
+    return (
+      <section className="action">
+        <span className="approved">✓ {t('approved')}</span>
+        <label className="field">
+          {t('destination')}
+          <input
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
+            placeholder="lnbc… · name@example.com · bc1… · spark1…"
+            required
+          />
+          <small>{t('destinationHelp')}</small>
+        </label>
+        {underfunded && (
+          <p role="alert" className="error">
+            {t('fundFirst')}
+          </p>
+        )}
+        <button onClick={prepare} disabled={busy || underfunded || destination.trim().length < 4}>
+          {t('validate')}
+        </button>
+        {error && (
+          <p role="alert" className="error">
+            {error}
+          </p>
+        )}
+      </section>
+    );
+
+  if (payout.state === 'PREPARED')
+    return (
+      <section className="review">
+        <h3>{t('review')}</h3>
+        <dl>
+          <div>
+            <dt>{t('type')}</dt>
+            <dd>{payout.destinationType}</dd>
+          </div>
+          <div>
+            <dt>{t('rail')}</dt>
+            <dd>{payout.rail}</dd>
+          </div>
+          <div>
+            <dt>{t('amount')}</dt>
+            <dd>{payout.amountBaseUnits} sats</dd>
+          </div>
+          <div>
+            <dt>{t('fee')}</dt>
+            <dd>{payout.feeBaseUnits} sats</dd>
+          </div>
+          <div>
+            <dt>{t('recipient')}</dt>
+            <dd>{payout.destinationMasked}</dd>
+          </div>
+          <div>
+            <dt>{t('expires')}</dt>
+            <dd>{new Date(payout.expiresAt).toLocaleTimeString()}</dd>
+          </div>
+        </dl>
+        <button onClick={confirm} disabled={busy}>
+          {t('confirm')}
+        </button>
+        {error && (
+          <p role="alert" className="error">
+            {error}
+          </p>
+        )}
+      </section>
+    );
+
+  const succeeded = payout.state === 'SUCCEEDED';
+  const failed = payout.state === 'PAYMENT_FAILED';
+  return (
+    <section className={`result ${succeeded ? 'success' : failed ? 'failure' : ''}`}>
+      <div className="resultIcon">{succeeded ? '✓' : failed ? '!' : '…'}</div>
+      <h3>{succeeded ? t('success') : failed ? t('failed') : t('processing')}</h3>
+      {payout.providerPaymentId && <code>{payout.providerPaymentId}</code>}
+      {!succeeded && !failed && (
+        <button onClick={refresh} disabled={busy}>
+          {t('refresh')}
+        </button>
+      )}
+      {error && (
+        <p role="alert" className="error">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}

@@ -28,6 +28,7 @@ type Service struct {
 	log      *slog.Logger
 	mu       sync.Mutex
 	prepared map[string]prepared
+	identity payment.WalletIdentity
 }
 type eventListener struct{ log *slog.Logger }
 
@@ -60,7 +61,32 @@ func New(c Config, log *slog.Logger) (payment.Service, func() error, error) {
 	}
 	client.AddEventListener(eventListener{log})
 	s := &Service{sdk: client, log: log, prepared: map[string]prepared{}}
+	s.loadIdentity()
 	return s, client.Disconnect, nil
+}
+
+// loadIdentity caches the treasury's own receiving identifiers so payouts to the
+// treasury itself can be rejected. Failures are non-fatal: an identifier that
+// cannot be loaded simply will not be matched by the self-payment guard.
+func (s *Service) loadIdentity() {
+	if info, err := s.sdk.GetInfo(sdk.GetInfoRequest{}); err == nil {
+		s.identity.Pubkey = info.IdentityPubkey
+	} else {
+		s.log.Warn("Breez identity: GetInfo failed", "error", err)
+	}
+	if la, err := s.sdk.GetLightningAddress(); err == nil && la != nil {
+		s.identity.LightningAddress = strings.ToLower(la.LightningAddress)
+	}
+	if r, err := s.sdk.ReceivePayment(sdk.ReceivePaymentRequest{PaymentMethod: sdk.ReceivePaymentMethodSparkAddress{}}); err == nil {
+		s.identity.SparkAddress = strings.ToLower(r.PaymentRequest)
+	}
+}
+
+// isSelfDestination reports whether the destination is one of the treasury's own
+// cached receiving identifiers.
+func (s *Service) isSelfDestination(low string) bool {
+	return (s.identity.LightningAddress != "" && low == s.identity.LightningAddress) ||
+		(s.identity.SparkAddress != "" && low == s.identity.SparkAddress)
 }
 func mask(v string) string {
 	if len(v) < 12 {
@@ -76,6 +102,9 @@ func unix(t uint64) *time.Time { v := time.Unix(int64(t), 0).UTC(); return &v }
 func (s *Service) ParseDestination(ctx context.Context, raw string) (*payment.ParsedDestination, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
+	}
+	if s.isSelfDestination(strings.ToLower(strings.TrimSpace(raw))) {
+		return nil, payment.ErrSelfPayment
 	}
 	in, err := s.sdk.Parse(strings.TrimSpace(raw))
 	if err != nil {
@@ -230,6 +259,56 @@ func normalize(p sdk.Payment) *payment.Result {
 		status = payment.StatusFailed
 	}
 	return &payment.Result{ProviderPaymentID: p.Id, Status: status, UpdatedAt: time.Unix(int64(p.Timestamp), 0).UTC()}
+}
+func (s *Service) TreasuryInfo(ctx context.Context) (*payment.TreasuryInfo, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	ensure := true
+	info, err := s.sdk.GetInfo(sdk.GetInfoRequest{EnsureSynced: &ensure})
+	if err != nil {
+		return nil, mapError(err)
+	}
+	tokens := map[string]int64{}
+	for id, tb := range info.TokenBalances {
+		if tb.Balance != nil && tb.Balance.IsInt64() {
+			tokens[id] = tb.Balance.Int64()
+		}
+	}
+	if len(tokens) == 0 {
+		tokens = nil
+	}
+	return &payment.TreasuryInfo{BalanceSats: int64(info.BalanceSats), Identity: s.identity, TokenBalances: tokens}, nil
+}
+func (s *Service) Deposit(ctx context.Context, r payment.DepositRequest) (*payment.DepositQuote, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	var method sdk.ReceivePaymentMethod
+	switch r.Rail {
+	case payment.RailLightning:
+		var amount *uint64
+		if r.AmountSats > 0 {
+			a := uint64(r.AmountSats)
+			amount = &a
+		}
+		method = sdk.ReceivePaymentMethodBolt11Invoice{Description: "FreedomBounties treasury deposit", AmountSats: amount}
+	case payment.RailBitcoin:
+		method = sdk.ReceivePaymentMethodBitcoinAddress{}
+	case payment.RailSpark:
+		method = sdk.ReceivePaymentMethodSparkAddress{}
+	default:
+		return nil, payment.ErrUnsupportedDestination
+	}
+	res, err := s.sdk.ReceivePayment(sdk.ReceivePaymentRequest{PaymentMethod: method})
+	if err != nil {
+		return nil, mapError(err)
+	}
+	var fee int64
+	if res.Fee != nil && res.Fee.IsInt64() {
+		fee = res.Fee.Int64()
+	}
+	return &payment.DepositQuote{Rail: r.Rail, PaymentRequest: res.PaymentRequest, FeeSats: fee}, nil
 }
 func (s *Service) Capabilities(context.Context) ([]payment.Capability, error) {
 	return []payment.Capability{{Asset: payment.AssetBTC, Rail: payment.RailLightning, Enabled: true}, {Asset: payment.AssetBTC, Rail: payment.RailBitcoin, Enabled: true}, {Asset: payment.AssetBTC, Rail: payment.RailSpark, Enabled: true}, {Asset: payment.AssetUSDT, Rail: payment.RailCrossChain, Enabled: false, Note: "not exposed by released Go binding v0.15.1"}, {Asset: payment.AssetUSDC, Rail: payment.RailCrossChain, Enabled: false, Note: "not exposed by released Go binding v0.15.1"}}, nil
