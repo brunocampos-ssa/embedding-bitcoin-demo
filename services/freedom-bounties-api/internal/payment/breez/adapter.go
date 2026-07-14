@@ -54,7 +54,17 @@ func New(c Config, log *slog.Logger) (payment.Service, func() error, error) {
 	}
 	cfg := sdk.DefaultConfig(network)
 	cfg.ApiKey = &c.APIKey
-	seed := sdk.SeedMnemonic{Mnemonic: c.Mnemonic}
+	mnemonic, source, path, err := resolveMnemonic(c.StorageDir, c.Mnemonic)
+	if err != nil {
+		return nil, func() error { return nil }, err
+	}
+	switch source {
+	case mnemonicGenerated:
+		log.Warn("initialized a new treasury wallet via the Breez SDK; mnemonic persisted — back it up and keep it secret", "path", path)
+	case mnemonicLoaded:
+		log.Info("loaded persisted treasury wallet mnemonic", "path", path)
+	}
+	seed := sdk.SeedMnemonic{Mnemonic: mnemonic}
 	client, err := sdk.Connect(sdk.ConnectRequest{Config: cfg, Seed: seed, StorageDir: c.StorageDir})
 	if err != nil {
 		return nil, func() error { return nil }, fmt.Errorf("connect Breez SDK: %w", err)

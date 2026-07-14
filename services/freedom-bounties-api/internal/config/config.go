@@ -34,8 +34,10 @@ func Load() (Config, error) {
 	if c.PaymentProvider != "mock" && c.PaymentProvider != "breez" {
 		return c, fmt.Errorf("PAYMENT_PROVIDER must be mock or breez")
 	}
-	if c.PaymentProvider == "breez" && (strings.TrimSpace(c.BreezAPIKey) == "" || strings.TrimSpace(c.BreezMnemonic) == "") {
-		return c, fmt.Errorf("Breez mode requires BREEZ_API_KEY and BREEZ_MNEMONIC")
+	// BREEZ_MNEMONIC is optional: when unset, the Breez adapter generates and
+	// persists a treasury wallet mnemonic on first run.
+	if c.PaymentProvider == "breez" && strings.TrimSpace(c.BreezAPIKey) == "" {
+		return c, fmt.Errorf("Breez mode requires BREEZ_API_KEY")
 	}
 	if c.AppEnv != "development" && c.AllowedOrigin == "*" {
 		return c, fmt.Errorf("wildcard CORS is forbidden outside development")
