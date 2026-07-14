@@ -55,7 +55,7 @@ export function PayoutFlow({
     run(async () => {
       const p = await api.payout(payout!.id);
       setPayout(p);
-      if (p.state === 'SUCCEEDED') onChanged();
+      if (p.state === 'SUCCEEDED' || p.state === 'PAYMENT_FAILED') onChanged();
     });
 
   useEffect(() => {

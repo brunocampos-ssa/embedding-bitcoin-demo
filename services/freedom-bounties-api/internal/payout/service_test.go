@@ -130,9 +130,49 @@ func TestConfirmMarksBountyPaidOnSynchronousSuccess(t *testing.T) {
 		t.Fatalf("confirm: state=%v err=%v", done.State, err)
 	}
 	var state string
-	_ = s.db.QueryRow(`SELECT state FROM bounties WHERE id='bounty-finance'`).Scan(&state)
+	if err := s.db.QueryRow(`SELECT state FROM bounties WHERE id='bounty-finance'`).Scan(&state); err != nil {
+		t.Fatal(err)
+	}
 	if state != "PAID" {
 		t.Fatalf("bounty must be PAID after a synchronous success, got %s", state)
+	}
+}
+
+func TestListReturnsPayoutsWithoutHanging(t *testing.T) {
+	s, _ := setup(t)
+	ctx := context.Background()
+	if err := s.Approve(ctx, "submission-finance"); err != nil {
+		t.Fatal(err)
+	}
+	p, err := s.Prepare(ctx, "submission-finance", "person@example.com", payment.AssetBTC)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Confirm(ctx, p.ID, "k"); err != nil {
+		t.Fatal(err)
+	}
+	// List calls Get per row; with a single-connection pool it must collect ids
+	// and close the cursor first, or it deadlocks. Guard the call with a timeout
+	// so a regression to that pattern fails loudly instead of hanging.
+	type result struct {
+		out []Payout
+		err error
+	}
+	done := make(chan result, 1)
+	go func() {
+		out, err := s.List(ctx)
+		done <- result{out, err}
+	}()
+	select {
+	case r := <-done:
+		if r.err != nil {
+			t.Fatal(r.err)
+		}
+		if len(r.out) != 1 || r.out[0].ID != p.ID {
+			t.Fatalf("expected 1 payout %s, got %+v", p.ID, r.out)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("List hung — it is likely holding the rows cursor while calling Get on a single-connection pool")
 	}
 }
 
