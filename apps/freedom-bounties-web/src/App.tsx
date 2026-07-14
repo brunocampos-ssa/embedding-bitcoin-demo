@@ -98,7 +98,7 @@ export default function App() {
               {selected.submissions?.[0] && (
                 <PayoutFlow
                   submission={selected.submissions[0]}
-                  balanceSats={treasury?.balanceSats ?? 0}
+                  balanceSats={treasury?.balanceSats}
                   rewardSats={selected.rewardSats}
                   onChanged={load}
                 />

@@ -50,6 +50,7 @@ export function TreasuryPanel({ treasury, onChanged }: { treasury?: Treasury; on
     <section className="treasury">
       <div className="treasuryHead">
         <div>
+          <h2>{t('treasuryTitle')}</h2>
           <small>{t('treasuryBalance')}</small>
           <p className="balance">{balance.toLocaleString()} sats</p>
         </div>

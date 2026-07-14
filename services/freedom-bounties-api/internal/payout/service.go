@@ -67,6 +67,10 @@ func (s *Service) Prepare(ctx context.Context, submissionID, destination string,
 	if asset == payment.AssetBTC && prep.FeeBaseUnits > s.policy.MaxFeeSats {
 		return nil, ErrPolicy
 	}
+	// Provider-agnostic balance precheck. This is defense-in-depth: the mock
+	// adapter already rejects underfunded preparations, but the Breez adapter's
+	// PreparePayout does not verify balance, so this is the load-bearing guard
+	// for the real provider. Do not remove it as "redundant".
 	if asset == payment.AssetBTC {
 		info, ierr := s.payments.TreasuryInfo(ctx)
 		if ierr != nil {

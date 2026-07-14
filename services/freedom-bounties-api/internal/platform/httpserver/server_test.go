@@ -58,6 +58,12 @@ func TestTreasuryDepositAndSelfPaymentGuard(t *testing.T) {
 	if w.Code != 422 || !strings.Contains(w.Body.String(), "DEPOSIT_AMOUNT_REQUIRED") {
 		t.Fatalf("deposit no-amount: %d %s", w.Code, w.Body.String())
 	}
+	// An out-of-range deposit amount is rejected.
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/api/treasury/deposit", strings.NewReader(`{"rail":"bitcoin","amountSats":100000001}`)))
+	if w.Code != 422 || !strings.Contains(w.Body.String(), "DEPOSIT_INVALID") {
+		t.Fatalf("deposit over cap: %d %s", w.Code, w.Body.String())
+	}
 	// A valid Lightning deposit returns a payment request.
 	w = httptest.NewRecorder()
 	h.ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/api/treasury/deposit", strings.NewReader(`{"rail":"lightning","amountSats":500}`)))

@@ -240,8 +240,8 @@ func (s *Server) deposit(w http.ResponseWriter, r *http.Request) {
 		fail(w, r, 422, "DEPOSIT_INVALID", "Choose a supported deposit rail: lightning, bitcoin, or spark.")
 		return
 	}
-	if in.AmountSats < 0 {
-		fail(w, r, 422, "DEPOSIT_INVALID", "Deposit amount cannot be negative.")
+	if in.AmountSats < 0 || in.AmountSats > 100_000_000 {
+		fail(w, r, 422, "DEPOSIT_INVALID", "Deposit amount must be between 0 and 100,000,000 sats.")
 		return
 	}
 	if in.Rail == payment.RailLightning && in.AmountSats <= 0 {

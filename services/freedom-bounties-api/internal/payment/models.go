@@ -89,9 +89,11 @@ type Result struct {
 	UpdatedAt         time.Time `json:"updatedAt"`
 }
 
-// WalletIdentity describes the treasury's own receiving identifiers. The public
-// key is used server-side for the self-payment guard and is never serialized to
-// the browser.
+// WalletIdentity describes the treasury's own receiving identifiers. The
+// self-payment guard matches a payout destination against the Lightning and
+// Spark addresses (the mock also matches a static Bitcoin address). Pubkey is
+// retained for identification and future hardening of the guard (e.g. matching
+// a bolt11 invoice's payee node) and is never serialized to the browser.
 type WalletIdentity struct {
 	Pubkey           string `json:"-"`
 	LightningAddress string `json:"lightningAddress,omitempty"`
