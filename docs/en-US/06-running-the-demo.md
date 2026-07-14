@@ -13,3 +13,11 @@ make dev
 Open `http://localhost:5173`. Seed data is automatic and idempotent. The first bounty already has a submitted workshop. Use `mentor@example.com`; then approve, prepare, confirm, and wait briefly for success. Use a supported value containing `fail` for a failure, `expired` for expiry, or set `MOCK_PAYMENT_FAILURE=always`.
 
 Run `make reset` to remove only the configured demo `.db`; restart the API to seed again. Docker Compose is optional: `docker compose up --build`. For real mode follow [Breez integration](07-breez-integration.md), fund only a low-value treasury, and run the API with `-tags breez`.
+
+<!-- nav-footer -->
+
+---
+
+<sub>📄 **Code:** [`cmd/api/main.go`](../../services/freedom-bounties-api/cmd/api/main.go)</sub>
+
+**[🏠 README](../../README.md)**  ·  ◀ [Treasury and deposits](18-treasury-and-deposits.md)  ·  [Breez SDK - Spark integration](07-breez-integration.md) ▶

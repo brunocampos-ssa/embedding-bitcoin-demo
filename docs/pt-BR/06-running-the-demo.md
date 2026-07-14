@@ -13,3 +13,11 @@ make dev
 Abra `http://localhost:5173`. Os dados são inseridos automaticamente. Use `mentor@example.com`, aprove, prepare, confirme e aguarde o sucesso. Um destino compatível com `fail` demonstra falha; `expired` demonstra expiração. `MOCK_PAYMENT_FAILURE=always` força falhas.
 
 Use `make reset` com a API parada. Docker é opcional: `docker compose up --build`. Para modo real, leia [Integração Breez](07-breez-integration.md) e financie apenas um tesouro isolado de baixo valor.
+
+<!-- nav-footer -->
+
+---
+
+<sub>📄 **Código:** [`cmd/api/main.go`](../../services/freedom-bounties-api/cmd/api/main.go)</sub>
+
+**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Tesouraria e depósitos](18-treasury-and-deposits.md)  ·  [Integração com Breez SDK - Spark](07-breez-integration.md) ▶

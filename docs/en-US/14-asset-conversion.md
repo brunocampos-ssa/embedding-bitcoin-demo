@@ -3,3 +3,9 @@
 [English](../en-US/14-asset-conversion.md) | [Português do Brasil](../pt-BR/14-asset-conversion.md)
 
 Conversion changes the source asset and risk model. Review input amount, estimated output, spread/fee, slippage bound, expiry, and failure of either leg. Reconcile the provider's single payment record rather than independently retrying legs.
+
+<!-- nav-footer -->
+
+---
+
+**[🏠 README](../../README.md)**  ·  ◀ [USDT and USDC](13-usdt-usdc.md)  ·  [Stable balance](15-stable-balance.md) ▶

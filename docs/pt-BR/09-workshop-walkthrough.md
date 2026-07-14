@@ -58,3 +58,9 @@ Os horários assumem início às 18:00; ajuste à vontade. Cada trecho lista o q
 - **Ideia central:** nomeie o que muda no caminho da demonstração até a produção.
 
 **Plano B:** mantenha a API em modo mock, use os destinos determinísticos de demonstração e mostre os links dos guias oficiais do Breez mais `go test -tags breez`. Nunca deixe a pressão do tempo justificar expor ou financiar a mnemonic de uma carteira pessoal — no modo real, deixe a aplicação gerar uma tesouraria descartável.
+
+<!-- nav-footer -->
+
+---
+
+**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Modelo de segurança](08-security-model.md)  ·  [Solução de problemas](10-troubleshooting.md) ▶

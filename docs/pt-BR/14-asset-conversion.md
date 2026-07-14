@@ -3,3 +3,9 @@
 [English](../en-US/14-asset-conversion.md) | [Português do Brasil](../pt-BR/14-asset-conversion.md)
 
 Conversão muda ativo de origem e risco. Revise entrada, saída estimada, spread/taxa, slippage e validade. Reconcilie o registro único do provedor, sem repetir etapas isoladamente.
+
+<!-- nav-footer -->
+
+---
+
+**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [USDT e USDC](13-usdt-usdc.md)  ·  [Saldo estável](15-stable-balance.md) ▶

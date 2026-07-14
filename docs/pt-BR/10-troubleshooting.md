@@ -15,3 +15,9 @@
 - **Pendente:** consulte o mesmo payout/ID; não crie outra intenção.
 - **Duplicado:** reutilize a mesma chave; outra é rejeitada.
 - **Real desativado:** compile com `-tags breez`; stablecoin cross-chain segue indisponível no Go `v0.15.1`.
+
+<!-- nav-footer -->
+
+---
+
+**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Roteiro da oficina de duas horas](09-workshop-walkthrough.md)  ·  [Notas de implementação](00-implementation-notes.md) ▶

@@ -14,3 +14,11 @@ go test -tags breez ./internal/payment/breez ./cmd/api
 ```
 
 Validação manual requer chave Breez, plataforma nativa e fundos — a mnemonic da tesouraria é gerada automaticamente quando `BREEZ_MNEMONIC` está vazio (ou forneça a sua, de baixo valor). Regtest serve a Spark/on-chain; Lightning exige mainnet com poucos sats. O repositório não executou pagamento financiado. Stablecoins reais aguardam o binding Go descrito nas [notas](00-implementation-notes.md).
+
+<!-- nav-footer -->
+
+---
+
+<sub>📄 **Código:** [`internal/payment/breez/adapter.go`](../../services/freedom-bounties-api/internal/payment/breez/adapter.go)</sub>
+
+**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Executando a demonstração](06-running-the-demo.md)  ·  [Modelo de segurança](08-security-model.md) ▶

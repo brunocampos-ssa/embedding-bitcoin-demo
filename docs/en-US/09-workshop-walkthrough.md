@@ -58,3 +58,9 @@ Times assume an 18:00 start; adjust freely. Each segment lists what to **do** on
 - **Takeaway:** name what changes on the road from demo to production.
 
 **Fallback:** keep the API in mock mode, use the deterministic demo destinations, and show the official Breez guide links plus `go test -tags breez`. Never let workshop timing pressure justify exposing or funding a personal wallet mnemonic — in real mode, let the app generate a throwaway treasury instead.
+
+<!-- nav-footer -->
+
+---
+
+**[🏠 README](../../README.md)**  ·  ◀ [Security model](08-security-model.md)  ·  [Troubleshooting](10-troubleshooting.md) ▶

@@ -27,3 +27,11 @@ stateDiagram-v2
 ```
 
 Somente entregas aprovadas podem ser preparadas; valor e destino congelam; índice parcial permite um único sucesso por entrega; confirmação exige idempotência persistida antes do provedor. A recompensa vira `PAID` apenas após `SUCCEEDED` confirmado.
+
+<!-- nav-footer -->
+
+---
+
+<sub>📄 **Código:** [`internal/payout/models.go`](../../services/freedom-bounties-api/internal/payout/models.go)</sub>
+
+**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Arquitetura](02-architecture.md)  ·  [Ciclo do pagamento](05-payment-lifecycle.md) ▶

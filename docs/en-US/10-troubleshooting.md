@@ -15,3 +15,9 @@
 - **Pending payment:** poll its existing payout/provider ID. Do not create another intent.
 - **Duplicate confirmation:** reuse the same idempotency key; a different key is rejected.
 - **Real payout disabled:** build with `-tags breez`; cross-chain stablecoins remain unavailable in Go `v0.15.1`.
+
+<!-- nav-footer -->
+
+---
+
+**[🏠 README](../../README.md)**  ·  ◀ [Two-hour workshop walkthrough](09-workshop-walkthrough.md)  ·  [Implementation notes](00-implementation-notes.md) ▶

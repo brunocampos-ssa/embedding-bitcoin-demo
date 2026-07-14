@@ -29,3 +29,11 @@ No modo mock a tesouraria começa **vazia** para que o fluxo que inicia pelo dep
 ## Modo Breez real
 
 `TreasuryInfo` corresponde ao `GetInfo` (saldo) mais `GetLightningAddress` do SDK, e `Deposit` corresponde a `ReceivePayment` com o método adequado ao trilho escolhido. Depósitos reais on-chain e Spark chegam fora de banda; o saldo os reflete no próximo `GetInfo`. Financie uma tesouraria de baixo valor e controlada à parte — nunca cole uma frase-semente no navegador.
+
+<!-- nav-footer -->
+
+---
+
+<sub>📄 **Código:** [`internal/payment/mock/service.go`](../../services/freedom-bounties-api/internal/payment/mock/service.go)</sub>
+
+**[🏠 README](../../README.pt-BR.md)**  ·  ◀ [Ciclo do pagamento](05-payment-lifecycle.md)  ·  [Executando a demonstração](06-running-the-demo.md) ▶
